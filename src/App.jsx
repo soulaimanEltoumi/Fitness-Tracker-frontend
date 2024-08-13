@@ -8,6 +8,8 @@ import Footer from "./components/Footer";
 import Exercises from "./pages/Exercices";
 import Workouts from "./pages/Workouts";
 import CreateWorkout from "./pages/createWorkout";
+import WorkoutDetails from "./pages/workoutDetails";
+import ExerciseDetails from "./pages/exercisesDetails";
 
 function App() {
   return (
@@ -18,7 +20,9 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/exercises" element={<Exercises />} />
+        <Route path="/exercise/:id" element={<ExerciseDetails />} />
         <Route path="/workouts" element={<Workouts />} />
+        <Route path="/workout/:id" element={<WorkoutDetails />} />
         <Route path="/createWorkout" element={<CreateWorkout />} />
       </Routes>
       <Footer />

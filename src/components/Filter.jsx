@@ -12,7 +12,13 @@ export default function Filter({ onFilterChange }) {
     axios
       .get(`${import.meta.env.VITE_LOCAL_API_URL}/exercise/targets`)
       .then((response) => {
-        setTargetList(response.data);
+        const data = response.data;
+        if (Array.isArray(data)) {
+          setTargetList(data);
+        } else {
+          console.error("Expected an array for targetList, got:", data);
+          setTargetList([]);
+        }
       })
       .catch((error) => {
         console.error("Error fetching targets:", error);
@@ -22,7 +28,13 @@ export default function Filter({ onFilterChange }) {
     axios
       .get(`${import.meta.env.VITE_LOCAL_API_URL}/exercise/equipment`)
       .then((response) => {
-        setEquipmentList(response.data);
+        const data = response.data;
+        if (Array.isArray(data)) {
+          setEquipmentList(data);
+        } else {
+          console.error("Expected an array for equipmentList, got:", data);
+          setEquipmentList([]);
+        }
       })
       .catch((error) => {
         console.error("Error fetching equipment:", error);
@@ -56,11 +68,12 @@ export default function Filter({ onFilterChange }) {
             onChange={handleTargetChange}
           >
             <option value="">-- Select Target --</option>
-            {targetList.map((target) => (
-              <option key={target} value={target}>
-                {target}
-              </option>
-            ))}
+            {Array.isArray(targetList) &&
+              targetList.map((target) => (
+                <option key={target} value={target}>
+                  {target}
+                </option>
+              ))}
           </select>
         </div>
 
@@ -72,11 +85,12 @@ export default function Filter({ onFilterChange }) {
             onChange={handleEquipmentChange}
           >
             <option value="">-- Select Equipment --</option>
-            {equipmentList.map((equipment) => (
-              <option key={equipment} value={equipment}>
-                {equipment}
-              </option>
-            ))}
+            {Array.isArray(equipmentList) &&
+              equipmentList.map((equipment) => (
+                <option key={equipment} value={equipment}>
+                  {equipment}
+                </option>
+              ))}
           </select>
         </div>
       </div>

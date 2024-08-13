@@ -1,6 +1,14 @@
 import React from "react";
+import { useNavigate } from "react-router-dom"; // Importar useNavigate
 
 const WorkoutCard = ({ workout }) => {
+  const navigate = useNavigate(); // Hook para la navegación
+
+  // Función para manejar el clic en el botón
+  const handleViewDetails = () => {
+    navigate(`/workout/${workout._id}`); // Navegar a la página de detalles del workout
+  };
+
   return (
     <div className="max-w-sm bg-gray-800 border border-gray-700 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out p-4">
       <h2 className="text-xl font-semibold mb-4 text-white">{workout.title}</h2>
@@ -19,6 +27,12 @@ const WorkoutCard = ({ workout }) => {
           <strong>Notes:</strong> {workout.notes}
         </p>
       )}
+      <button
+        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-200"
+        onClick={handleViewDetails} // Manejar el clic
+      >
+        View Details
+      </button>
     </div>
   );
 };
