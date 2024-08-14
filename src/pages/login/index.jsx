@@ -8,7 +8,6 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(undefined);
-
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {

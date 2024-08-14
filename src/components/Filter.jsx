@@ -12,13 +12,7 @@ export default function Filter({ onFilterChange }) {
     axios
       .get(`${import.meta.env.VITE_LOCAL_API_URL}/exercise/targets`)
       .then((response) => {
-        const data = response.data;
-        if (Array.isArray(data)) {
-          setTargetList(data);
-        } else {
-          console.error("Expected an array for targetList, got:", data);
-          setTargetList([]);
-        }
+        setTargetList(response.data);
       })
       .catch((error) => {
         console.error("Error fetching targets:", error);
@@ -28,13 +22,7 @@ export default function Filter({ onFilterChange }) {
     axios
       .get(`${import.meta.env.VITE_LOCAL_API_URL}/exercise/equipment`)
       .then((response) => {
-        const data = response.data;
-        if (Array.isArray(data)) {
-          setEquipmentList(data);
-        } else {
-          console.error("Expected an array for equipmentList, got:", data);
-          setEquipmentList([]);
-        }
+        setEquipmentList(response.data);
       })
       .catch((error) => {
         console.error("Error fetching equipment:", error);
@@ -68,7 +56,8 @@ export default function Filter({ onFilterChange }) {
             onChange={handleTargetChange}
           >
             <option value="">-- Select Target --</option>
-            {Array.isArray(targetList) &&
+
+            {targetList &&
               targetList.map((target) => (
                 <option key={target} value={target}>
                   {target}
@@ -85,7 +74,7 @@ export default function Filter({ onFilterChange }) {
             onChange={handleEquipmentChange}
           >
             <option value="">-- Select Equipment --</option>
-            {Array.isArray(equipmentList) &&
+            {equipmentList &&
               equipmentList.map((equipment) => (
                 <option key={equipment} value={equipment}>
                   {equipment}

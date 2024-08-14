@@ -1,7 +1,6 @@
-// src/components/CreateWorkout.js
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 
 function CreateWorkout() {
@@ -10,41 +9,124 @@ function CreateWorkout() {
 
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
-  const [exercises, setExercises] = useState("");
+  const [exercises, setExercises] = useState([
+    { name: "", id: "", bodyPart: "", equipment: "", target: "" },
+  ]);
   const [duration, setDuration] = useState("");
   const [notes, setNotes] = useState("");
-  const [userId, setUserId] = useState(""); // Ajusta según cómo obtienes el ID del usuario
+  const [userId, setUserId] = useState("");
   const [error, setError] = useState(null);
+  const [debouncedValue, setDebouncedValue] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [isPublic, setIsPublic] = useState(false); // Nuevo estado para visibilidad
+
+  // Decodifica el token y obtiene el userId
+  const getUserIdFromToken = (token) => {
+    try {
+      const decodedToken = jwtDecode(token);
+      return decodedToken._id; // Asegúrate de que el campo sea el correcto
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const authToken = localStorage.getItem("authToken");
+    if (!authToken) {
+      navigate("/login");
+      return;
+    }
+
+    const userIdFromToken = getUserIdFromToken(authToken);
+    if (!userIdFromToken) {
+      navigate("/login");
+      return;
+    }
+
+    setUserId(userIdFromToken);
+  }, [navigate]);
+
+  useEffect(() => {
+    const timerId = setTimeout(async () => {
+      if (debouncedValue.trim() !== "") {
+        try {
+          const response = await axios.get(
+            `${API_URL}/exercise/name/${encodeURIComponent(debouncedValue)}`
+          );
+          setSuggestions(response.data); // Actualiza las sugerencias con los datos recibidos
+        } catch (error) {
+          console.error("Error fetching exercises:", error);
+          setError("Failed to fetch exercises. Please try again.");
+        }
+      } else {
+        setSuggestions([]); // Limpia las sugerencias si el valor está vacío
+      }
+    }, 500);
+
+    return () => clearTimeout(timerId);
+  }, [debouncedValue]);
+
+  const handleExerciseChange = (index, value) => {
+    const newExercises = [...exercises];
+    newExercises[index].name = value;
+    setExercises(newExercises);
+    setDebouncedValue(value); // Actualiza el valor debounced
+  };
+
+  const handleSuggestionClick = (index, suggestion) => {
+    const newExercises = [...exercises];
+    newExercises[index] = {
+      name: suggestion.name,
+      id: suggestion.id,
+      bodyPart: suggestion.bodyPart,
+      equipment: suggestion.equipment,
+      target: suggestion.target,
+    };
+    setExercises(newExercises);
+    setDebouncedValue(""); // Limpia el valor debounced
+    setSuggestions([]); // Limpia las sugerencias
+  };
+
+  const addExerciseField = () => {
+    setExercises([
+      ...exercises,
+      { name: "", id: "", bodyPart: "", equipment: "", target: "" },
+    ]);
+  };
+
+  const removeExerciseField = (index) => {
+    setExercises(exercises.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const exerciseArray = exercises
-      .split(",")
-      .map((exercise) => exercise.trim());
-
-    const newWorkout = {
-      title,
-      date,
-      exercises: exerciseArray.map((exercise) => ({
-        bodyPart: exercise, // Ajustar según sea necesario
-        equipment: "None",
-        gifUrl: "",
-        id: exercise,
-        name: exercise,
-        target: "General",
-        secondaryMuscles: [],
-        instructions: [],
-      })),
-      duration: parseInt(duration, 10),
-      notes,
-      userId,
-    };
-
     try {
+      const allExercisesValid = exercises.every(
+        (exercise) => exercise.id !== ""
+      );
+
+      if (!allExercisesValid) {
+        setError(
+          "One or more exercises do not exist. Please check your input."
+        );
+        return;
+      }
+
+      const newWorkout = {
+        title,
+        date,
+        exercises,
+        duration: parseInt(duration, 10),
+        notes,
+        userId,
+        isPublic, // Incluye el campo de visibilidad
+      };
+
       const response = await axios.post(`${API_URL}/workout`, newWorkout);
       console.log("Workout created:", response.data);
-      navigate("/workouts"); // Redirige a la página de lista de entrenamientos
+      navigate("/workouts");
     } catch (error) {
       console.error("Error creating workout:", error);
       setError("Failed to create workout. Please try again.");
@@ -79,16 +161,45 @@ function CreateWorkout() {
           />
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-bold mb-2">
-            Exercises (comma-separated):
-          </label>
-          <input
-            type="text"
-            value={exercises}
-            onChange={(e) => setExercises(e.target.value)}
-            required
-            className="w-full p-2 bg-gray-700 rounded"
-          />
+          <label className="block text-sm font-bold mb-2">Exercises:</label>
+          {exercises.map((exercise, index) => (
+            <div key={index} className="relative mb-2">
+              <input
+                type="text"
+                value={exercise.name}
+                onChange={(e) => handleExerciseChange(index, e.target.value)}
+                required
+                className="w-full p-2 bg-gray-700 rounded"
+              />
+              {suggestions.length > 0 && (
+                <ul className="absolute top-full left-0 w-full bg-gray-800 border border-gray-700 mt-1 rounded">
+                  {suggestions.map((suggestion) => (
+                    <li
+                      key={suggestion.id}
+                      onClick={() => handleSuggestionClick(index, suggestion)}
+                      className="p-2 cursor-pointer hover:bg-gray-700"
+                    >
+                      {suggestion.name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <button
+                type="button"
+                onClick={() => removeExerciseField(index)}
+                className="ml-2 text-red-600 hover:text-red-800"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addExerciseField}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-2 rounded"
+          >
+            Add Exercise
+          </button>
         </div>
         <div className="mb-4">
           <label className="block text-sm font-bold mb-2">
@@ -111,14 +222,15 @@ function CreateWorkout() {
           />
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-bold mb-2">User ID:</label>
-          <input
-            type="text"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            required
+          <label className="block text-sm font-bold mb-2">Visibility:</label>
+          <select
+            value={isPublic}
+            onChange={(e) => setIsPublic(e.target.value === "true")}
             className="w-full p-2 bg-gray-700 rounded"
-          />
+          >
+            <option value={false}>Private</option>
+            <option value={true}>Public</option>
+          </select>
         </div>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <button

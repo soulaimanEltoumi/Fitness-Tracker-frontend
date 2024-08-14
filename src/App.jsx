@@ -10,6 +10,8 @@ import Workouts from "./pages/Workouts";
 import CreateWorkout from "./pages/createWorkout";
 import WorkoutDetails from "./pages/workoutDetails";
 import ExerciseDetails from "./pages/exercisesDetails";
+import ContactUs from "./pages/contact";
+import AboutUs from "./pages/about";
 
 function App() {
   return (
@@ -24,6 +26,9 @@ function App() {
         <Route path="/workouts" element={<Workouts />} />
         <Route path="/workout/:id" element={<WorkoutDetails />} />
         <Route path="/createWorkout" element={<CreateWorkout />} />
+        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="*" element={<h1>Not Found</h1>} />
       </Routes>
       <Footer />
     </div>
