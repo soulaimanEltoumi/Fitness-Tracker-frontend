@@ -1,12 +1,30 @@
 import React from "react";
-import { useNavigate } from "react-router-dom"; // Importar useNavigate
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const WorkoutCard = ({ workout }) => {
+const WorkoutCard = ({ workout, canDelete, onDelete }) => {
   const navigate = useNavigate(); // Hook para la navegación
 
-  // Función para manejar el clic en el botón
+  // Función para manejar el clic en el botón de ver detalles
   const handleViewDetails = () => {
     navigate(`/workout/${workout._id}`); // Navegar a la página de detalles del workout
+  };
+
+  // Función para manejar la eliminación del workout
+  const handleDelete = async () => {
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_LOCAL_API_URL}/workout/${workout._id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+      onDelete(workout._id); // Llama a la función onDelete pasada desde el componente padre
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to delete workout");
+    }
   };
 
   return (
@@ -27,12 +45,22 @@ const WorkoutCard = ({ workout }) => {
           <strong>Notes:</strong> {workout.notes}
         </p>
       )}
-      <button
-        className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-200"
-        onClick={handleViewDetails} // Manejar el clic
-      >
-        View Details
-      </button>
+      <div className="flex justify-between items-center mt-4">
+        <button
+          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-200"
+          onClick={handleViewDetails} // Manejar el clic para ver detalles
+        >
+          View Details
+        </button>
+        {canDelete && (
+          <button
+            className="px-4 py-2 bg-red-800 text-white rounded hover:bg-red-900 transition duration-200"
+            onClick={handleDelete} // Manejar el clic para eliminar
+          >
+            Delete Workout
+          </button>
+        )}
+      </div>
     </div>
   );
 };

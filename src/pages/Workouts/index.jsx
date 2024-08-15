@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode"; // Asegúrate de importar correctamente
-import WorkoutCard from "../../components/WorkoutCard"; // Ajusta la ruta según sea necesario
-import { useNavigate } from "react-router-dom"; // Si usas react-router-dom para la navegación
+import { jwtDecode } from "jwt-decode";
+import WorkoutCard from "../../components/WorkoutCard";
+import { useNavigate } from "react-router-dom";
 
 export default function Workouts() {
   const API_URL = import.meta.env.VITE_LOCAL_API_URL;
-  const navigate = useNavigate(); // Hook de navegación para redirigir a la página de creación
+  const navigate = useNavigate();
 
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,71 +15,73 @@ export default function Workouts() {
   const [tokenExists, setTokenExists] = useState(false);
 
   useEffect(() => {
-    // Asumiendo que tienes el authToken almacenado en localStorage
     const token = localStorage.getItem("authToken");
 
     if (token) {
-      const decoded = jwtDecode(token);
-      setUserId(decoded._id); // Aquí es donde extraes el userId
-      setTokenExists(true); // Establece el estado a true si el token existe
+      try {
+        const decoded = jwtDecode(token);
+        setUserId(decoded._id);
+        setTokenExists(true);
+      } catch (error) {
+        console.error("Failed to decode token:", error);
+        setTokenExists(false);
+      }
     } else {
-      console.error("No token found");
-      setTokenExists(false); // Establece el estado a false si no hay token
+      setTokenExists(false);
     }
   }, []);
 
+  // Definimos la función fetchAllWorkouts aquí
   const fetchAllWorkouts = async () => {
-    setLoading(true); // Establecer loading a true al comenzar la petición
-    setError(null); // Limpiar cualquier error anterior
+    setLoading(true);
+    setError(null);
     try {
       const response = await axios.get(`${API_URL}/workout`);
       setWorkouts(response.data);
-      setLoading(false);
     } catch (error) {
       console.error("Error fetching workouts:", error);
       setError("Failed to fetch workouts.");
+    } finally {
       setLoading(false);
     }
   };
 
+  // Definimos la función fetchUserWorkouts aquí
   const fetchUserWorkouts = async () => {
     if (tokenExists) {
-      setLoading(true); // Establecer loading a true al comenzar la petición
-      setError(null); // Limpiar cualquier error anterior
+      setLoading(true);
+      setError(null);
       try {
         const response = await axios.get(`${API_URL}/workout/user/${userId}`);
         setWorkouts(response.data);
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching user workouts:", error);
         setError("Failed to fetch user workouts.");
+      } finally {
         setLoading(false);
       }
     }
   };
 
-  // Cargar todos los entrenamientos públicos al iniciar
+  // Llamamos fetchAllWorkouts cuando el componente se monta
   useEffect(() => {
     fetchAllWorkouts();
   }, [API_URL]);
 
-  if (loading) {
-    return <div className="text-white">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-white">{error}</div>;
-  }
-
-  // Función para manejar el clic del botón "Create Workout"
   const handleCreateWorkout = () => {
-    navigate("/createWorkout"); // Redirige a la página de creación de workout
+    navigate("/createWorkout");
   };
 
-  // Función para manejar el clic del botón "Login"
   const handleLogin = () => {
-    navigate("/login"); // Redirige a la página de login
+    navigate("/login");
   };
+
+  const handleDelete = (deletedWorkoutId) => {
+    setWorkouts(workouts.filter((workout) => workout._id !== deletedWorkoutId));
+  };
+
+  if (loading) return <div className="text-white">Loading...</div>;
+  if (error) return <div className="text-white">{error}</div>;
 
   return (
     <div className="bg-gray-900 text-white min-h-screen flex flex-col">
@@ -131,7 +133,12 @@ export default function Workouts() {
             <p>No workouts found.</p>
           ) : (
             workouts.map((workout) => (
-              <WorkoutCard key={workout._id} workout={workout} />
+              <WorkoutCard
+                key={workout._id}
+                workout={workout}
+                canDelete={workout.userId === userId}
+                onDelete={handleDelete}
+              />
             ))
           )}
         </div>
