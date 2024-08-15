@@ -36,12 +36,6 @@ export default function Footer() {
     <footer className="bg-gray-900 text-white p-4 shadow-inner">
       <div className="container mx-auto flex flex-wrap items-center justify-between">
         <div className="flex space-x-4">
-          <Link to="/terms" className="hover:text-red-500">
-            Terms & Conditions
-          </Link>
-          <Link to="/privacy" className="hover:text-red-500">
-            Privacy Policy
-          </Link>
           <Link to="/about" className="hover:text-red-500">
             about
           </Link>
