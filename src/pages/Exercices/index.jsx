@@ -67,8 +67,11 @@ export default function Exercises() {
           {exercises.length === 0 ? (
             <p>No exercises found.</p>
           ) : (
-            exercises.map((exercise) => (
-              <ExerciseCard key={exercise._id} exercise={exercise} />
+            exercises.map((exercise, index) => (
+              <ExerciseCard
+                key={"" + index + exercise._id}
+                exercise={exercise}
+              />
             ))
           )}
         </div>

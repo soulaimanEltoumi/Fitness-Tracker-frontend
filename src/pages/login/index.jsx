@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuthContext } from "../../context/AuthContext"; // Ajusta la ruta según tu estructura
 
 const API_URL = import.meta.env.VITE_LOCAL_API_URL;
 
@@ -9,21 +10,25 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(undefined);
   const navigate = useNavigate();
+  const { login } = useAuthContext(); // Usa el contexto
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const requestBody = { email, password };
 
-    axios
-      .post(`${API_URL}/auth/login`, requestBody)
-      .then((response) => {
-        localStorage.setItem("authToken", response.data.authToken);
-        navigate("/");
-      })
-      .catch((error) => {
-        const errorDescription = error.response.data.message;
-        setErrorMessage(errorDescription);
-      });
+    try {
+      const response = await axios.post(`${API_URL}/auth/login`, requestBody);
+      const { authToken } = response.data;
+
+      localStorage.setItem("authToken", authToken);
+      login(authToken); // Usa la función login del contexto
+      navigate("/"); // Redirige al usuario a la página principal
+    } catch (error) {
+      const errorDescription =
+        error.response?.data?.message || "An error occurred";
+      setErrorMessage(errorDescription);
+    }
+
     setEmail("");
     setPassword("");
     setErrorMessage(undefined);

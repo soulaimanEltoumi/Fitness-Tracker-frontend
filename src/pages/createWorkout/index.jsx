@@ -24,6 +24,7 @@ function CreateWorkout() {
   const getUserIdFromToken = (token) => {
     try {
       const decodedToken = jwtDecode(token);
+
       return decodedToken._id; // Asegúrate de que el campo sea el correcto
     } catch (error) {
       console.error("Error decoding token:", error);
@@ -77,11 +78,13 @@ function CreateWorkout() {
   const handleSuggestionClick = (index, suggestion) => {
     const newExercises = [...exercises];
     newExercises[index] = {
+      ...newExercises[index],
       name: suggestion.name,
       id: suggestion.id,
       bodyPart: suggestion.bodyPart,
       equipment: suggestion.equipment,
       target: suggestion.target,
+      gifUrl: suggestion.gifUrl,
     };
     setExercises(newExercises);
     setDebouncedValue(""); // Limpia el valor debounced
@@ -91,7 +94,7 @@ function CreateWorkout() {
   const addExerciseField = () => {
     setExercises([
       ...exercises,
-      { name: "", id: "", bodyPart: "", equipment: "", target: "" },
+      { name: "", id: "", bodyPart: "", equipment: "", target: "", gifUrl: "" },
     ]);
   };
 
@@ -121,11 +124,10 @@ function CreateWorkout() {
         duration: parseInt(duration, 10),
         notes,
         userId,
-        isPublic, // Incluye el campo de visibilidad
+        isPublic,
       };
 
-      const response = await axios.post(`${API_URL}/workout`, newWorkout);
-      console.log("Workout created:", response.data);
+      const response = await axios.post(`${API_URL}/createWorkout`, newWorkout);
       navigate("/workouts");
     } catch (error) {
       console.error("Error creating workout:", error);

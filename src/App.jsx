@@ -12,11 +12,12 @@ import WorkoutDetails from "./pages/workoutDetails";
 import ExerciseDetails from "./pages/exercisesDetails";
 import ContactUs from "./pages/contact";
 import AboutUs from "./pages/about";
+import ProfilePage from "./pages/profile";
 
 function App() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />{" "}
+      <Navbar />
       <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="/register" element={<Register />} />
@@ -28,8 +29,10 @@ function App() {
         <Route path="/createWorkout" element={<CreateWorkout />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/about" element={<AboutUs />} />
+        <Route path="*" element={<ProfilePage />} />
         <Route path="*" element={<h1>Not Found</h1>} />
       </Routes>
+
       <Footer />
     </div>
   );

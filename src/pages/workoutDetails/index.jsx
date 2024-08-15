@@ -18,6 +18,7 @@ const WorkoutDetails = () => {
       try {
         const response = await axios.get(`${API_URL}/workout/${id}`);
         setWorkout(response.data);
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching workout details:", error);
@@ -49,9 +50,16 @@ const WorkoutDetails = () => {
     }));
   };
 
-  const handleSubmitTraining = () => {
-    console.log("Training Data:", trainingData);
-    // Aquí puedes agregar lógica para enviar los datos al servidor
+  const handleSubmitTraining = async () => {
+    try {
+      const response = await axios.post(`${API_URL}/training`, trainingData);
+      // Reset training data and show success message
+      setTrainingData({});
+      alert("Training submitted successfully!");
+    } catch (error) {
+      console.error("Error submitting training:", error);
+      alert("Failed to submit training.");
+    }
   };
 
   if (loading) {

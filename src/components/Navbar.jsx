@@ -1,25 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import logo from "../img/logo.jpg";
 import { GiHamburgerMenu, GiCrossedSwords } from "react-icons/gi";
+import { useAuthContext } from "../context/AuthContext"; // Asegúrate de ajustar la ruta según tu estructura
 
 export default function Navbar() {
   const API_URL = import.meta.env.VITE_LOCAL_API_URL;
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false); // Estado para el menú hamburguesa
   const [searchTerm, setSearchTerm] = useState(""); // Estado para el término de búsqueda
   const [suggestions, setSuggestions] = useState([]); // Estado para las sugerencias
   const [error, setError] = useState(null); // Estado para manejar errores de búsqueda
+  const { isAuthenticated, logout } = useAuthContext(); // Accede al contexto
   const navigate = useNavigate(); // Hook para redirigir
-
-  useEffect(() => {
-    // Verificar si hay un token en el almacenamiento local al cargar el componente
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      setIsAuthenticated(true);
-    }
-  }, []);
 
   useEffect(() => {
     const timerId = setTimeout(async () => {
@@ -52,10 +45,9 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
-    // Eliminar el token y actualizar el estado
-    localStorage.removeItem("authToken");
-    setIsAuthenticated(false);
-    navigate("/"); // Redirigir al usuario al homepage después de cerrar sesión
+    // Utiliza la función logout del contexto
+    logout();
+    navigate("/"); // Redirige al usuario al homepage después de cerrar sesión
   };
 
   return (
@@ -131,11 +123,6 @@ export default function Navbar() {
                   Login/Register
                 </Link>
               )}
-            </li>
-            <li>
-              <Link to="/profile" className="hover:text-red-500">
-                Profile
-              </Link>
             </li>
           </ul>
         </div>
