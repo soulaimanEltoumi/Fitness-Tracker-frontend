@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 function CreateWorkout() {
   const API_URL = import.meta.env.VITE_LOCAL_API_URL;
   const navigate = useNavigate();
+  const inputRef = useRef(null);
+  const suggestionsRef = useRef(null);
 
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
@@ -18,14 +20,13 @@ function CreateWorkout() {
   const [error, setError] = useState(null);
   const [debouncedValue, setDebouncedValue] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  const [isPublic, setIsPublic] = useState(false); // Nuevo estado para visibilidad
+  const [isPublic, setIsPublic] = useState(false);
 
   // Decodifica el token y obtiene el userId
   const getUserIdFromToken = (token) => {
     try {
       const decodedToken = jwtDecode(token);
-
-      return decodedToken._id; // Asegúrate de que el campo sea el correcto
+      return decodedToken._id;
     } catch (error) {
       console.error("Error decoding token:", error);
       return null;
@@ -55,13 +56,13 @@ function CreateWorkout() {
           const response = await axios.get(
             `${API_URL}/exercise/name/${encodeURIComponent(debouncedValue)}`
           );
-          setSuggestions(response.data); // Actualiza las sugerencias con los datos recibidos
+          setSuggestions(response.data);
         } catch (error) {
           console.error("Error fetching exercises:", error);
           setError("Failed to fetch exercises. Please try again.");
         }
       } else {
-        setSuggestions([]); // Limpia las sugerencias si el valor está vacío
+        setSuggestions([]);
       }
     }, 500);
 
@@ -69,13 +70,15 @@ function CreateWorkout() {
   }, [debouncedValue]);
 
   const handleExerciseChange = (index, value) => {
+    console.log("Input changed:", value); // Verificar cambios en la consola
     const newExercises = [...exercises];
     newExercises[index].name = value;
     setExercises(newExercises);
-    setDebouncedValue(value); // Actualiza el valor debounced
+    setDebouncedValue(value);
   };
 
   const handleSuggestionClick = (index, suggestion) => {
+    console.log("Suggestion clicked:", suggestion); // Verificar clic en la consola
     const newExercises = [...exercises];
     newExercises[index] = {
       ...newExercises[index],
@@ -87,8 +90,8 @@ function CreateWorkout() {
       gifUrl: suggestion.gifUrl,
     };
     setExercises(newExercises);
-    setDebouncedValue(""); // Limpia el valor debounced
-    setSuggestions([]); // Limpia las sugerencias
+    setDebouncedValue("");
+    setSuggestions([]);
   };
 
   const addExerciseField = () => {
@@ -135,6 +138,25 @@ function CreateWorkout() {
     }
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target)
+      ) {
+        setSuggestions([]);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center">
       <h2 className="text-2xl font-bold mb-6">Create New Workout</h2>
@@ -167,18 +189,26 @@ function CreateWorkout() {
           {exercises.map((exercise, index) => (
             <div key={index} className="relative mb-2">
               <input
+                ref={inputRef}
                 type="text"
                 value={exercise.name}
                 onChange={(e) => handleExerciseChange(index, e.target.value)}
                 required
                 className="w-full p-2 bg-gray-700 rounded"
+                placeholder="Type exercise name"
               />
               {suggestions.length > 0 && (
-                <ul className="absolute top-full left-0 w-full bg-gray-800 border border-gray-700 mt-1 rounded">
+                <ul
+                  ref={suggestionsRef}
+                  className="absolute top-full left-0 w-full bg-gray-800 border border-gray-700 mt-1 rounded"
+                >
                   {suggestions.map((suggestion) => (
                     <li
                       key={suggestion.id}
                       onClick={() => handleSuggestionClick(index, suggestion)}
+                      onTouchEnd={() =>
+                        handleSuggestionClick(index, suggestion)
+                      } // Para móviles
                       className="p-2 cursor-pointer hover:bg-gray-700"
                     >
                       {suggestion.name}
