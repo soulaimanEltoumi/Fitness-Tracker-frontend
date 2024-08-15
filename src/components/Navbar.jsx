@@ -92,6 +92,7 @@ export default function Navbar() {
                   <li
                     key={suggestion.id}
                     onClick={() => handleSuggestionClick(suggestion)}
+                    ontouchstart={() => handleSuggestionClick(suggestion)}
                     className="p-2 cursor-pointer hover:bg-gray-700"
                   >
                     {suggestion.name}
