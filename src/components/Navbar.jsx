@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import logo from "../img/logo.jpg";
+import logo from "../img/logo.png";
 import { GiHamburgerMenu, GiCrossedSwords } from "react-icons/gi";
 import { useAuthContext } from "../context/AuthContext"; // Asegúrate de ajustar la ruta según tu estructura
 

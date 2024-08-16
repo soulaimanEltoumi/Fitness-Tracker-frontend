@@ -70,7 +70,6 @@ function CreateWorkout() {
   }, [debouncedValue]);
 
   const handleExerciseChange = (index, value) => {
-    console.log("Input changed:", value); // Verificar cambios en la consola
     const newExercises = [...exercises];
     newExercises[index].name = value;
     setExercises(newExercises);
@@ -78,10 +77,8 @@ function CreateWorkout() {
   };
 
   const handleSuggestionClick = (index, suggestion) => {
-    console.log("Suggestion clicked:", suggestion); // Verificar clic en la consola
     const newExercises = [...exercises];
     newExercises[index] = {
-      ...newExercises[index],
       name: suggestion.name,
       id: suggestion.id,
       bodyPart: suggestion.bodyPart,
