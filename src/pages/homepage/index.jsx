@@ -1,10 +1,30 @@
 import { Link, useNavigate } from "react-router-dom";
 import video from "../../img/david.webm";
 import { useAuthContext } from "../../context/AuthContext";
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 
 export default function Homepage() {
-  const { isAuthenticated, logout } = useAuthContext();
+  const { setAuthenticated, isAuthenticated, login, logout } = useAuthContext();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const authToken = searchParams.get("authToken");
+
+    if (authToken) {
+      // Almacena el token en localStorage
+      localStorage.setItem("authToken", authToken);
+      login(authToken); // Usa la función login del contexto
+
+      // Elimina el token de la URL
+      const newUrl = window.location.pathname; // Mantiene la misma ruta pero sin parámetros
+      window.history.replaceState(null, "", newUrl);
+
+      navigate("/"); // Redirige al usuario a la página principal
+    }
+  }, [navigate, login]);
 
   const handleLogout = () => {
     logout();

@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuthContext } from "../../context/AuthContext"; // Ajusta la ruta según tu estructura
-
+import { useSearchParams } from "react-router-dom";
 const API_URL = import.meta.env.VITE_LOCAL_API_URL;
 
 export default function Login() {
@@ -11,6 +11,25 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState(undefined);
   const navigate = useNavigate();
   const { login } = useAuthContext(); // Usa el contexto
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    // Captura el token JWT de la URL si está presente
+    const authToken = searchParams.get("authToken");
+    console.log(authToken);
+
+    if (authToken) {
+      // Almacena el token en localStorage
+      localStorage.setItem("authToken", authToken);
+      login(authToken); // Usa la función login del contexto
+
+      // Elimina el token de la URL
+      const newUrl = window.location.pathname; // Mantiene la misma ruta pero sin parámetros
+      window.history.replaceState(null, "", newUrl);
+
+      navigate("/"); // Redirige al usuario a la página principal
+    }
+  }, [navigate, login]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,9 +39,13 @@ export default function Login() {
       const response = await axios.post(`${API_URL}/auth/login`, requestBody);
       const { authToken } = response.data;
 
-      localStorage.setItem("authToken", authToken);
-      login(authToken); // Usa la función login del contexto
-      navigate("/"); // Redirige al usuario a la página principal
+      if (authToken) {
+        localStorage.setItem("authToken", authToken);
+        login(authToken); // Usa la función login del contexto
+        navigate("/"); // Redirige al usuario a la página principal
+      } else {
+        setErrorMessage("No token received from the server.");
+      }
     } catch (error) {
       const errorDescription =
         error.response?.data?.message || "An error occurred";
@@ -32,6 +55,10 @@ export default function Login() {
     setEmail("");
     setPassword("");
     setErrorMessage(undefined);
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${API_URL}/auth/google`;
   };
 
   return (
@@ -82,6 +109,13 @@ export default function Login() {
               className="w-full py-2 bg-red-600 text-white font-semibold rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               Login
+            </button>
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-full py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-4"
+            >
+              Login with Google
             </button>
           </form>
           {errorMessage && <p className="mt-4 text-red-500">{errorMessage}</p>}
